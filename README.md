@@ -18,7 +18,8 @@ You can change the github repo with: `git.url`
 And change the branch with: `branch.name`
 
 if `find.random` property is set to true then it will randomly find and fight random users
-username and password property allows you to set the username and password for the bot
+
+`username` and `password` property allows you to set the username and password for the bot
 
 
 ### For the future

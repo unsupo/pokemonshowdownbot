@@ -1,13 +1,21 @@
 # pokemonshowdownbot
-java -jar pokemon-showdown-bot-1.0-SNAPSHOT.jar
+Download the jar in the target folder then run it with (might work by just opening the file from the file manager): 
 
-This command will run the bot which will start a bot that you can challenge
+`java -jar pokemon-showdown-bot-1.0-SNAPSHOT.jar`
+
+This command will start a bot that you can challenge
 
 Accepts a property file path as an argument to the jar
-you can assign you own testclient.html with the property: testclient.path
-You can assign where it downloads the github repo with: dest.dir
-You can change the github repo with: git.url
-And change the branch with: branch.name
+you can assign you own `testclient.html` with the property: `testclient.path`
+You can assign where it downloads the github repo with: `dest.dir`
+You can change the github repo with: `git.url`
+And change the branch with: `branch.name`
 
-if find.random property is set to true then it will randomly find and fight random users
+if `find.random` property is set to true then it will randomly find and fight random users
 username and password property allows you to set the username and password for the bot
+
+
+### For the future
+ - Leaderboard which will be saved in this repository for anyone who downloads and fights this bot.
+ Which will list which repository it fought against if that is changed.
+ - Gym leaders, campaign mode.

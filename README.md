@@ -8,9 +8,13 @@ Download the jar in the target folder then run it with (might work by just openi
 This command will start a bot that you can challenge
 
 Accepts a property file path as an argument to the jar
+
 you can assign you own `testclient.html` with the property: `testclient.path`
+
 You can assign where it downloads the github repo with: `dest.dir`
+
 You can change the github repo with: `git.url`
+
 And change the branch with: `branch.name`
 
 if `find.random` property is set to true then it will randomly find and fight random users

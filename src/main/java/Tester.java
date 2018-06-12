@@ -38,16 +38,16 @@ public class Tester {
         }
 //        String testClientPath = "file:///Users/jarndt/code_projects/PokemonShowdown/Pokemon-Showdown-Client/testclient.html";
         String testClientPath = null;
-        if(props.contains("testclient.path"))
+        if(props.getProperty("testclient.path") != null)
             testClientPath = props.getProperty("testclient.path");
         else {
             String destDir = System.getProperty("user.dir")+"/Pokemon-Showdown-Client/";
-            if(props.contains("dest.dir"))
+            if(props.getProperty("dest.dir") != null)
                 destDir = props.getProperty("dest.dir");
             String url = "https://github.com/mgutin/Pokemon-Showdown-Client.git", branch = "jonathans-branch";
-            if(props.contains("git.url"))
+            if(props.getProperty("git.url")!=null)
                 url = props.getProperty("git.url");
-            if(props.contains("branch.name"))
+            if(props.getProperty("branch.name")!=null)
                 branch = props.getProperty("branch.name");
             CloneCommand git = Git.cloneRepository()
                     .setURI(url)
@@ -82,7 +82,12 @@ public class Tester {
 
         testClientPath = "file:///"+testClientPath;
         WebDriverManager.chromedriver().setup();
-        WebDriver driver = new ChromeDriver(new ChromeOptions().addArguments("--disable-notifications"));
+        WebDriver driver = new ChromeDriver(
+                new ChromeOptions()
+                        .addArguments("--disable-notifications")
+//                        .addArguments("--headless")
+//                        .addArguments("window-size=1920,1080")
+        );
         driver.get(testClientPath);
         if(driver instanceof PhantomJSDriver) {
             ExecutorService e = Executors.newSingleThreadExecutor();
@@ -105,13 +110,14 @@ public class Tester {
         while (true){
             //TODO add game
             try {
-                if(props.contains("find.random") && props.getProperty("find.random").toLowerCase().equals("true") &&
+                if(props.getProperty("find.random")!=null && props.getProperty("find.random").toLowerCase().equals("true") &&
                         !Jsoup.parse(driver.getPageSource()).select("form.battleform").select("p.buttonbar").attr("style").equals("display: none;")
                         && !Jsoup.parse(driver.getPageSource()).select("form.battleform").select("p.buttonbar").attr("style").equals(""))
                     driver.findElement(By.cssSelector(
                             Jsoup.parse(driver.getPageSource()).select("form.battleform").select("p.buttonbar").get(0).cssSelector())
                     ).click();
-                if(Jsoup.parse(driver.getPageSource()).select("p.buttonbar").select("button").size()>0)
+                if(Jsoup.parse(driver.getPageSource()).select("p.buttonbar").select("button").size()>0 &&
+                        !Jsoup.parse(driver.getPageSource()).select("p.buttonbar").attr("style").contains("display: none;"))
                     driver.findElement(By.cssSelector(
                             Jsoup.parse(driver.getPageSource()).select("p.buttonbar").select("button").get(0).cssSelector()
                     )).click();
@@ -205,7 +211,7 @@ public class Tester {
         String ss = Jsoup.parse(driver.getPageSource()).select("input.textbox").get(0).cssSelector();
         new WebDriverWait(driver,10000).until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(ss)));
         String username = "d45cda786aa947d0ba";//UUID.randomUUID().toString().replace("-","").substring(0,18);
-        if(props.contains("username"))
+        if(props.getProperty("username")!=null)
             username = props.getProperty("username");
 //            driver.findElement(By.cssSelector(ss)).sendKeys();
         ((ChromeDriver) driver).executeScript("document.querySelector('"+ss+"').value='"+username+"';");
@@ -216,7 +222,7 @@ public class Tester {
         if(p.select("p.error").text().trim().equals("The name you chose is registered.")) {
             String ssl = p.select("input.textbox").get(0).cssSelector();
             String password = "password";
-            if(props.contains("password"))
+            if(props.getProperty("password")!=null)
                 password = props.getProperty("password");
             ((ChromeDriver) driver).executeScript("document.querySelector('"+ssl+"').value='"+password+"';");
             driver.findElement(By.cssSelector(p.select("p.buttonbar").select("button").get(0).cssSelector())).click();
@@ -228,6 +234,12 @@ public class Tester {
         //dumb cross origin
         new WebDriverWait(driver,10000).until(ExpectedConditions.visibilityOfElementLocated(By.id("overlay_iframe")));
         driver.switchTo().frame(((ChromeDriver) driver).findElementById("overlay_iframe")).getPageSource();
+        if(Jsoup.parse(driver.getPageSource()).select("input").size() >= 4 ) {
+            Elements p = Jsoup.parse(driver.getPageSource()).select("input");
+            driver.findElement(By.cssSelector(
+                    p.get(p.size()-1).cssSelector()
+            )).click();
+        }
         new WebDriverWait(driver,10000).until(ExpectedConditions.visibilityOfElementLocated(By.tagName("pre")));
         String text = Jsoup.parse(((ChromeDriver) driver).executeScript("return document.body.innerHTML;").toString()).select("pre").text();
         driver.switchTo().parentFrame();

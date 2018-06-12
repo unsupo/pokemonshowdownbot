@@ -139,11 +139,12 @@ public class Tester {
                             Jsoup.parse(driver.getPageSource()).select("form.battleform").select("p.buttonbar").get(0).cssSelector())
                     ).click();
                 if(!isChallenge && Jsoup.parse(driver.getPageSource()).select("p.buttonbar").select("button").size()>0 &&
-                        !Jsoup.parse(driver.getPageSource()).select("p.buttonbar").attr("style").contains("display: none;"))
+                        !Jsoup.parse(driver.getPageSource()).select("p.buttonbar").attr("style").contains("display: none;") &&
+                        !Jsoup.parse(driver.getPageSource()).select("#room-").attr("style").contains("display: none;")) {
                     driver.findElement(By.cssSelector(
                             Jsoup.parse(driver.getPageSource()).select("p.buttonbar").select("button").get(0).cssSelector()
                     )).click();
-                if(Jsoup.parse(driver.getPageSource()).select("div.ps-popup").select("p.buttonbar").select("button").text().trim().contains("Cancel"))
+                }if(Jsoup.parse(driver.getPageSource()).select("div.ps-popup").select("p.buttonbar").select("button").text().trim().contains("Cancel"))
                     driver.findElement(By.cssSelector(
                         Jsoup.parse(driver.getPageSource()).select("div.ps-popup")
                                 .select("p.buttonbar").select("button").get(1).cssSelector()
@@ -270,11 +271,20 @@ public class Tester {
         //dumb cross origin
         new WebDriverWait(driver,10000).until(ExpectedConditions.visibilityOfElementLocated(By.id("overlay_iframe")));
         driver.switchTo().frame(((ChromeDriver) driver).findElementById("overlay_iframe")).getPageSource();
-        if(Jsoup.parse(driver.getPageSource()).select("input").size() >= 4 ) {
-            Elements p = Jsoup.parse(driver.getPageSource()).select("input");
-            driver.findElement(By.cssSelector(
-                    p.get(p.size()-1).cssSelector()
-            )).click();
+        try {
+            if (Jsoup.parse(driver.getPageSource()).select("input").size() >= 4) {
+                Elements p = Jsoup.parse(driver.getPageSource()).select("input");
+                driver.findElement(By.cssSelector(
+                        p.get(p.size() - 1).cssSelector()
+                )).click();
+            }
+        }catch (ArrayIndexOutOfBoundsException aie){
+            if (Jsoup.parse(driver.getPageSource()).select("input").size() >= 4) {
+                Elements p = Jsoup.parse(driver.getPageSource()).select("input");
+                driver.findElement(By.cssSelector(
+                        p.get(p.size() - 1).cssSelector()
+                )).click();
+            }
         }
         new WebDriverWait(driver,10000).until(ExpectedConditions.visibilityOfElementLocated(By.tagName("pre")));
         String text = Jsoup.parse(((ChromeDriver) driver).executeScript("return document.body.innerHTML;").toString()).select("pre").text();

@@ -55,11 +55,13 @@ public class Tester {
             if(!branch.isEmpty())
                 git.setBranchesToClone(Collections.singleton(branch))
                     .setBranch(branch);
-            Repository r = new FileRepositoryBuilder()
-                    .addCeilingDirectory(new File(destDir))
-                    .findGitDir(new File(destDir)).build();
-            if(new File(destDir).exists() && r.getAllRefs().containsKey("HEAD")){
-                org.eclipse.jgit.api.Git.wrap(r).pull();
+            if(new File(destDir).exists()){
+                Repository r = new FileRepositoryBuilder()
+                        .addCeilingDirectory(new File(destDir))
+                        .findGitDir(new File(destDir))
+                        .build();
+                if(r.getAllRefs().containsKey("HEAD"))
+                   org.eclipse.jgit.api.Git.wrap(r).pull();
             }else
                 git.call();
             testClientPath = destDir+"testclient.html";

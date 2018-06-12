@@ -7,6 +7,8 @@ Download the jar in the target folder then run it with (might work by just openi
 
 This command will start a bot that you can challenge
 
+This bot will auto accept all challenges
+
 Accepts a property file path as an argument to the jar
 
 you can assign you own `testclient.html` with the property: `testclient.path`
@@ -21,6 +23,12 @@ if `find.random` property is set to true then it will randomly find and fight ra
 
 `username` and `password` property allows you to set the username and password for the bot
 
+`username=${uuid}` will generate a random uid for the name
+
+`challenge.user` allows you to select a user for it to auto challenge
+
+`challenge.user` property is useful if you want it to fight another bot that accepts all challenges then you can watch the two
+bots battle it out
 
 ### For the future
  - Bot improvements to be a stronger ai

@@ -138,8 +138,9 @@ public class Tester {
                     driver.findElement(By.cssSelector(
                             Jsoup.parse(driver.getPageSource()).select("form.battleform").select("p.buttonbar").get(0).cssSelector())
                     ).click();
+                //accept all challenges
                 if(!isChallenge && Jsoup.parse(driver.getPageSource()).select("p.buttonbar").select("button").size()>0 &&
-                        !Jsoup.parse(driver.getPageSource()).select("p.buttonbar").attr("style").contains("display: none;") &&
+                        !Jsoup.parse(driver.getPageSource()).select("p.buttonbar").get(0).attr("style").contains("display: none;") &&
                         !Jsoup.parse(driver.getPageSource()).select("#room-").attr("style").contains("display: none;")) {
                     driver.findElement(By.cssSelector(
                             Jsoup.parse(driver.getPageSource()).select("p.buttonbar").select("button").get(0).cssSelector()
@@ -157,15 +158,6 @@ public class Tester {
                     )).click();
                     isChallenge = false;
                 }
-//                if (!Jsoup.parse(driver.getPageSource()).select("div.ps-room")
-//                        .attr("style").contains("display: none;"))
-//                    if (Jsoup.parse(driver.getPageSource()).select("form.battleform").select("button.mainmenu1").text().equals("Battle! Find a random opponent")) {
-//                        driver.findElement(By.cssSelector(
-//                                Jsoup.parse(driver.getPageSource()).select("form.battleform").select("button.mainmenu1")
-//                                        .get(0).cssSelector()
-//                        )).click();
-//                        Thread.sleep(3000);
-//                    }
                 if (Jsoup.parse(driver.getPageSource()).select("div.ps-popup").text().contains("does not exist"))
                     driver.findElement(
                             By.cssSelector(
@@ -191,13 +183,15 @@ public class Tester {
         }
     }
     private static void performAction(WebDriver driver){
-        Elements timerButton = Jsoup.parse(driver.getPageSource()).select("div.whatdo").select("button.timerbutton");
-        if(timerButton.text().trim().equals("Timer")){
-            driver.findElement(By.cssSelector(timerButton.get(0).cssSelector())).click();
-            driver.findElement(By.cssSelector(
-                    Jsoup.parse(driver.getPageSource()).select("div.ps-popup").select("button")
-                            .get(0).cssSelector()
-            )).click();
+        if(props.getProperty("timer") == null || props.getProperty("timer").toLowerCase().equals("true")) {
+            Elements timerButton = Jsoup.parse(driver.getPageSource()).select("div.whatdo").select("button.timerbutton");
+            if (timerButton.text().trim().equals("Timer")) {
+                driver.findElement(By.cssSelector(timerButton.get(0).cssSelector())).click();
+                driver.findElement(By.cssSelector(
+                        Jsoup.parse(driver.getPageSource()).select("div.ps-popup").select("button")
+                                .get(0).cssSelector()
+                )).click();
+            }
         }
         String action = ((ChromeDriver)driver).executeScript("return getAction().description;").toString();
         String[] actions = action.split(": ");
@@ -278,7 +272,7 @@ public class Tester {
                         p.get(p.size() - 1).cssSelector()
                 )).click();
             }
-        }catch (ArrayIndexOutOfBoundsException aie){
+        }catch (Exception aie){
             if (Jsoup.parse(driver.getPageSource()).select("input").size() >= 4) {
                 Elements p = Jsoup.parse(driver.getPageSource()).select("input");
                 driver.findElement(By.cssSelector(

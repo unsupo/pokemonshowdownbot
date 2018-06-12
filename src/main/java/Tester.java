@@ -212,10 +212,10 @@ public class Tester {
         driver.findElement(By.cssSelector(bs)).click();
         String ss = Jsoup.parse(driver.getPageSource()).select("input.textbox").get(0).cssSelector();
         new WebDriverWait(driver,10000).until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(ss)));
+        // TODO: 6/12/18 UID new user or use temp password
         String username = "d45cda786aa947d0ba";//UUID.randomUUID().toString().replace("-","").substring(0,18);
-        if(props.getProperty("username")!=null)
-            username = props.getProperty("username");
-//            driver.findElement(By.cssSelector(ss)).sendKeys();
+        if(replacer(props.getProperty("username"))!=null)
+            username = replacer(props.getProperty("username"));
         ((ChromeDriver) driver).executeScript("document.querySelector('"+ss+"').value='"+username+"';");
         String sb = Jsoup.parse(driver.getPageSource()).select("div.ps-popup").select("p.buttonbar").select("button").get(0).cssSelector();
         driver.findElement(By.cssSelector(sb)).click();
@@ -228,8 +228,18 @@ public class Tester {
                 password = props.getProperty("password");
             ((ChromeDriver) driver).executeScript("document.querySelector('"+ssl+"').value='"+password+"';");
             driver.findElement(By.cssSelector(p.select("p.buttonbar").select("button").get(0).cssSelector())).click();
+            crossOrigin(driver);
         }
-        crossOrigin(driver);
+    }
+
+    private static String replacer(String s) {
+        if(s==null)
+            return s;
+        if(s.contains("${uuid}"))
+            s = s.replace("${uuid}",UUID.randomUUID().toString().replace("-","").substring(0,18));
+        if(s.contains("${user.dir}"))
+            s = s.replace("${uuid}",System.getProperty("user.dir"));
+        return s;
     }
 
     private static void crossOrigin(WebDriver driver){

@@ -108,17 +108,37 @@ public class Tester {
             e.shutdown();
         }
         int i = 0;
+        boolean isChallenge = false;
         login(driver);
         while (true){
             //TODO add game
             try {
-                if(props.getProperty("find.random")!=null && props.getProperty("find.random").toLowerCase().equals("true") &&
+                if(!isChallenge && props.getProperty("challenge.user")!=null && !props.getProperty("challenge.user").isEmpty()) {
+                    Elements e = Jsoup.parse(driver.getPageSource()).select("button.onlineonly");
+                    if(e.size() > 2 && "finduser".equals(e.get(1).attr("name"))) {
+                        driver.findElement(By.cssSelector(
+                                e.get(1).cssSelector()
+                        )).click();
+
+                        String ss = Jsoup.parse(driver.getPageSource()).select("div.ps-popup").select("input.textbox").get(0).cssSelector();
+                        ((ChromeDriver) driver).executeScript("document.querySelector('"+ss+"').value='"+props.getProperty("challenge.user")+"';");
+                        String sr = Jsoup.parse(driver.getPageSource()).select("div.ps-popup").select("p.buttonbar").select("button").get(0).cssSelector();
+                        driver.findElement(By.cssSelector(sr)).click();
+
+                        String srcr = Jsoup.parse(driver.getPageSource()).select("div.ps-popup").select("p.buttonbar").select("button").get(0).cssSelector();
+                        driver.findElement(By.cssSelector(srcr)).click();
+
+                        String src = Jsoup.parse(driver.getPageSource()).select("form.battleform").select("p.buttonbar").select("button").get(0).cssSelector();
+                        driver.findElement(By.cssSelector(src)).click();
+                        isChallenge = true;
+                    }
+                }if(props.getProperty("find.random")!=null && props.getProperty("find.random").toLowerCase().equals("true") &&
                         !Jsoup.parse(driver.getPageSource()).select("form.battleform").select("p.buttonbar").attr("style").equals("display: none;")
                         && !Jsoup.parse(driver.getPageSource()).select("form.battleform").select("p.buttonbar").attr("style").equals(""))
                     driver.findElement(By.cssSelector(
                             Jsoup.parse(driver.getPageSource()).select("form.battleform").select("p.buttonbar").get(0).cssSelector())
                     ).click();
-                if(Jsoup.parse(driver.getPageSource()).select("p.buttonbar").select("button").size()>0 &&
+                if(!isChallenge && Jsoup.parse(driver.getPageSource()).select("p.buttonbar").select("button").size()>0 &&
                         !Jsoup.parse(driver.getPageSource()).select("p.buttonbar").attr("style").contains("display: none;"))
                     driver.findElement(By.cssSelector(
                             Jsoup.parse(driver.getPageSource()).select("p.buttonbar").select("button").get(0).cssSelector()
@@ -129,11 +149,13 @@ public class Tester {
                                 .select("p.buttonbar").select("button").get(1).cssSelector()
                     )).click();
                 if (Jsoup.parse(driver.getPageSource()).select("div.battle-controls")
-                        .text().contains("Rematch"))
+                        .text().contains("Rematch")) {
                     driver.findElement(By.cssSelector(
                             Jsoup.parse(driver.getPageSource()).select("div.battle-controls")
                                     .select("div.controls").select("p").get(1).select("button").get(0).cssSelector()
                     )).click();
+                    isChallenge = false;
+                }
 //                if (!Jsoup.parse(driver.getPageSource()).select("div.ps-room")
 //                        .attr("style").contains("display: none;"))
 //                    if (Jsoup.parse(driver.getPageSource()).select("form.battleform").select("button.mainmenu1").text().equals("Battle! Find a random opponent")) {
@@ -158,6 +180,8 @@ public class Tester {
                     try {
                         performAction(driver);
                     } catch (Exception e) {
+                        if(e.getMessage().contains("unknown error: getAction is not defined"))
+                            System.err.println("No javascript getAction method found");
                     }
                 Thread.sleep(1000);
             }catch (Exception e){

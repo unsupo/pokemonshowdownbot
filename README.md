@@ -16,6 +16,12 @@ you can assign you own `testclient.html` with the property: `testclient.path`
 You can assign where it downloads the github repo with: `dest.dir`
 
 You can change the github repo with: `git.url`
+Keep in mind this program assumes it can call a global javascript method
+`getAction()` which returns an object with description field `getAction().description`
+also, it calls this javascript method `getAction().mon.active` to get if the 
+mon from `getAction()` is the currently active pokemon. Minimum, return from
+`getAction()`:
+`{description: 'MonName: moveName', mon:{active:true|false}}`
 
 And change the branch with: `branch.name`
 

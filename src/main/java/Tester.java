@@ -118,7 +118,7 @@ public class Tester {
                     if(e.size() > 2 && "finduser".equals(e.get(1).attr("name"))) {
                         driver.findElement(By.cssSelector(
                                 e.get(1).cssSelector()
-                        )).click();
+                        )).click(); //TODO exception here
 
                         String ss = Jsoup.parse(driver.getPageSource()).select("div.ps-popup").select("input.textbox").get(0).cssSelector();
                         ((ChromeDriver) driver).executeScript("document.querySelector('"+ss+"').value='"+props.getProperty("challenge.user")+"';");

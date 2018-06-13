@@ -1,7 +1,7 @@
 .idea
 *.iml
 *.log
-local.properties
+*.properties
 dependency-reduced-pom.xml
 target/*
 !target/pokemon-showdown-bot-1.0-SNAPSHOT.jar

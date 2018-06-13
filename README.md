@@ -41,3 +41,6 @@ bots battle it out
  - Leaderboard which will be saved in this repository for anyone who downloads and fights this bot.
  Which will list which repository it fought against if that is changed.
  - Gym leaders, campaign mode.
+ - different levels of difficulty
+ - Concurrent browser runs to test different ai systems and multiple 
+ random users

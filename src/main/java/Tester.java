@@ -65,7 +65,7 @@ public class Tester {
                         .findGitDir(new File(destDir))
                         .build();
                 if(r.getAllRefs().containsKey("HEAD"))
-                   org.eclipse.jgit.api.Git.wrap(r).pull();
+                   org.eclipse.jgit.api.Git.wrap(r).pull().call();
             }else
                 git.call();
             testClientPath = destDir+"testclient.html";

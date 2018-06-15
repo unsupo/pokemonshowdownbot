@@ -2,6 +2,7 @@
 *.iml
 *.log
 *.properties
+highscores
 dependency-reduced-pom.xml
 target/*
 !target/pokemon-showdown-bot-1.0-SNAPSHOT.jar

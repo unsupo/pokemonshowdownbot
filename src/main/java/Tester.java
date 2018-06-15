@@ -1,9 +1,13 @@
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import io.github.bonigarcia.wdm.WebDriverManager;
+import objects.WinnerDetails;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -113,19 +117,36 @@ public class Tester {
         while (true){
             //TODO add game
             try {
+                //skip to end
+                if((props.getProperty("skip.to.end") == null || props.getProperty("skip.to.end").toLowerCase().equals("true"))
+                        && Jsoup.parse(driver.getPageSource()).select("div.battle-controls").select("i.fa-fast-forward").size() > 0)
+                    driver.findElement(By.cssSelector(
+                            Jsoup.parse(driver.getPageSource()).select("div.battle-controls").select("button").get(2).cssSelector()
+                    )).click();
                 if(!isChallenge && props.getProperty("challenge.user")!=null && !props.getProperty("challenge.user").isEmpty()) {
                     Elements e = Jsoup.parse(driver.getPageSource()).select("button.onlineonly");
                     if(e.size() > 2 && "finduser".equals(e.get(1).attr("name"))) {
-                        driver.findElement(By.cssSelector(
-                                e.get(1).cssSelector()
-                        )).click(); //TODO exception here
+                        try {
+                            driver.findElement(By.cssSelector(
+                                    e.get(1).cssSelector()
+                            )).click(); //TODO exception here
+                        }catch (Exception e1){
+                            //do nothing
+                        } // TODO: 6/13/18 focus punch is a bad move
 
-                        String ss = Jsoup.parse(driver.getPageSource()).select("div.ps-popup").select("input.textbox").get(0).cssSelector();
-                        ((ChromeDriver) driver).executeScript("document.querySelector('"+ss+"').value='"+props.getProperty("challenge.user")+"';");
-                        String sr = Jsoup.parse(driver.getPageSource()).select("div.ps-popup").select("p.buttonbar").select("button").get(0).cssSelector();
-                        driver.findElement(By.cssSelector(sr)).click();
-
-                        String srcr = Jsoup.parse(driver.getPageSource()).select("div.ps-popup").select("p.buttonbar").select("button").get(0).cssSelector();
+                        Elements els = Jsoup.parse(driver.getPageSource()).select("div.ps-popup").select("input.textbox");
+                        if(els.size() > 0) {
+                            String ss = els.get(0).cssSelector();
+                            ((ChromeDriver) driver).executeScript("document.querySelector('" + ss + "').value='" + props.getProperty("challenge.user") + "';");
+                            String sr = Jsoup.parse(driver.getPageSource()).select("div.ps-popup").select("p.buttonbar").select("button").get(0).cssSelector();
+                            driver.findElement(By.cssSelector(sr)).click();
+                        }
+                        Element challenge = Jsoup.parse(driver.getPageSource()).select("div.ps-popup").select("p.buttonbar").select("button").get(0);
+                        if(challenge.hasAttr("disabled")){
+                            driver.navigate().refresh();
+                            return;
+                        }
+                        String srcr = challenge.cssSelector();
                         driver.findElement(By.cssSelector(srcr)).click();
 
                         String src = Jsoup.parse(driver.getPageSource()).select("form.battleform").select("p.buttonbar").select("button").get(0).cssSelector();
@@ -133,11 +154,14 @@ public class Tester {
                         isChallenge = true;
                     }
                 }if(props.getProperty("find.random")!=null && props.getProperty("find.random").toLowerCase().equals("true") &&
-                        !Jsoup.parse(driver.getPageSource()).select("form.battleform").select("p.buttonbar").attr("style").equals("display: none;")
-                        && !Jsoup.parse(driver.getPageSource()).select("form.battleform").select("p.buttonbar").attr("style").equals(""))
+                        !Jsoup.parse(driver.getPageSource()).select("form.battleform").select("button.mainmenu1").attr("style").equals("display: none;") &&
+                        !Jsoup.parse(driver.getPageSource()).select("#room-").attr("style").contains("display: none;")) {
+//                        && !Jsoup.parse(driver.getPageSource()).select("form.battleform").select("p.buttonbar").attr("style").equals(""))
                     driver.findElement(By.cssSelector(
-                            Jsoup.parse(driver.getPageSource()).select("form.battleform").select("p.buttonbar").get(0).cssSelector())
-                    ).click();
+//                            Jsoup.parse(driver.getPageSource()).select("form.battleform").select("p.buttonbar").get(0).cssSelector()
+                            Jsoup.parse(driver.getPageSource()).select("form.battleform").select("button.mainmenu1").get(0).cssSelector()
+                    )).click();
+                }
                 //accept all challenges
                 if(!isChallenge && Jsoup.parse(driver.getPageSource()).select("p.buttonbar").select("button").size()>0 &&
                         !Jsoup.parse(driver.getPageSource()).select("p.buttonbar").get(0).attr("style").contains("display: none;") &&
@@ -152,11 +176,63 @@ public class Tester {
                     )).click();
                 if (Jsoup.parse(driver.getPageSource()).select("div.battle-controls")
                         .text().contains("Rematch")) {
+                    isChallenge = false;
+                    //who won the match
+                    Elements v = Jsoup.parse(driver.getPageSource()).select("div.battle-history");
+                    String winner = v.get(v.size() - 1).text().trim();
+                    //bot won
+                    Elements trainers = Jsoup.parse(driver.getPageSource()).select("div.trainer > strong");
+                    String oppsName = trainers.get(1).text().trim();
+                    //might want this to be hsqldb but for now...
+                    String destDir = System.getProperty("user.dir")+"/highscores";
+//                    CloneCommand git = Git.cloneRepository()
+//                            .setURI("https://github.com/unsupo/pokemonshowdownbot-highscores.git")
+//                            .setDirectory(new File(destDir));
+//                    String branch = "";
+//                    if(!branch.isEmpty())
+//                        git.setBranchesToClone(Collections.singleton(branch))
+//                                .setCredentialsProvider(CredentialsProvider.getDefault())
+//                                .setBranch(branch);
+//                    Repository repository = git.getRepository();
+//                    if(new File(destDir).exists()){
+//                        repository = new FileRepositoryBuilder()
+//                                .addCeilingDirectory(new File(destDir))
+//                                .findGitDir(new File(destDir))
+//                                .build();
+//                        if(repository.getAllRefs().containsKey("HEAD"))
+//                            org.eclipse.jgit.api.Git.wrap(repository).pull();
+//                    }else
+//                        git.call();
+//                    new Git(repository).pull().call();
+                    new File(destDir).mkdirs();
+                    String ff = "winner_details.json", f = destDir+"/"+ff;
+                    HashMap<String, WinnerDetails> winners = new HashMap<>();
+                    if(new File(f).exists())
+                        winners = new Gson().fromJson(FileOptions.readFileIntoString(f),new TypeToken<HashMap<String, WinnerDetails>>(){}.getType());
+                    WinnerDetails winnerDetails = new WinnerDetails(oppsName);
+                    if(winners.containsKey(oppsName))
+                        winnerDetails = winners.get(oppsName);
+                    else
+                        winners.put(oppsName,winnerDetails);
+                    if(winner.contains(userName))
+                        winnerDetails.incrementLoss();
+                    else
+                        winnerDetails.incrementWin();
+                    FileOptions.writeToFileOverWrite(f,new Gson().toJson(winners));
+//                    new Git()
+//                    new Git(repository).add().addFilepattern(ff).call();
+//                    new Git(repository).commit().setMessage("updating file").call();
+//                    new Git(repository).push().call();
+                    // TODO: 6/13/18 check won/loss and if it contains userName if so then write bot won or loss and player x won/loss
+                    // save your team with JSON.stringify(room.myPokemon)
+                    // room.battle.activityQueue has all actions throughout battle
+                    // JSON.stringify(room.battle.yourSide.pokemon) for you opponents mons which has moveTrack, but not all moves
+                    //div.battle-history .get(size()-1)
+
                     driver.findElement(By.cssSelector(
                             Jsoup.parse(driver.getPageSource()).select("div.battle-controls")
                                     .select("div.controls").select("p").get(1).select("button").get(0).cssSelector()
                     )).click();
-                    isChallenge = false;
                 }
                 if (Jsoup.parse(driver.getPageSource()).select("div.ps-popup").text().contains("does not exist"))
                     driver.findElement(
@@ -193,13 +269,20 @@ public class Tester {
                 )).click();
             }
         }
+        //for outrage
+        Elements switchmenu = Jsoup.parse(driver.getPageSource()).select("div.switchmenu").select("em");
+        if(switchmenu.size() > 0 && switchmenu.get(0).text().trim().equals("You are trapped and cannot switch!")){
+            driver.findElement(By.cssSelector(
+                Jsoup.parse(driver.getPageSource()).select("div.movemenu").select("button").get(0).cssSelector()
+            )).click();
+            return;
+        }
         String action = ((ChromeDriver)driver).executeScript("return getAction().description;").toString();
         String[] actions = action.split(": ");
         try {
             ((ChromeDriver) driver).executeScript("$('input[name=megaevo]')[0].checked=true;");
         }catch (Exception e){/*always try to mega even if it's not a mega*/}
-        //Todo check for choiced items button disabled
-        //TODO fix u-turn
+
         Elements buttons = Jsoup.parse(driver.getPageSource()).select("div.whatdo").select("div.movemenu").select("button");
         boolean active = ((ChromeDriver) driver).executeScript("return getAction().mon.active;").toString().equals("true");
         String whatDo = Jsoup.parse(driver.getPageSource()).select("div.whatdo").text().trim();
@@ -224,6 +307,8 @@ public class Tester {
         }
     }
 
+    public static String userName;
+
     private static void login(WebDriver driver){
         crossOrigin(driver);
         //login
@@ -235,6 +320,7 @@ public class Tester {
         String username = "d45cda786aa947d0ba";//UUID.randomUUID().toString().replace("-","").substring(0,18);
         if(replacer(props.getProperty("username"))!=null)
             username = replacer(props.getProperty("username"));
+        userName = username;
         ((ChromeDriver) driver).executeScript("document.querySelector('"+ss+"').value='"+username+"';");
         String sb = Jsoup.parse(driver.getPageSource()).select("div.ps-popup").select("p.buttonbar").select("button").get(0).cssSelector();
         driver.findElement(By.cssSelector(sb)).click();
